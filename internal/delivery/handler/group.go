@@ -9,32 +9,33 @@ import (
 	"github.com/Temisaputra/warOnk/internal/delivery/presenter"
 	"github.com/Temisaputra/warOnk/internal/delivery/presenter/request"
 	"github.com/Temisaputra/warOnk/internal/delivery/presenter/response"
+	"github.com/Temisaputra/warOnk/internal/delivery/presenter/validation"
 	"github.com/Temisaputra/warOnk/pkg/helper"
 	"github.com/gorilla/mux"
 )
 
-type productUsecase interface {
-	GetAllProduct(ctx context.Context, pagination *request.Pagination) (produtcs []*presenter.ProductResponse, meta response.Meta, err error)
-	GetProductByID(ctx context.Context, id int) (product *presenter.ProductResponse, err error)
-	CreateProduct(ctx context.Context, params *presenter.ProductRequest) error
-	UpdateProduct(ctx context.Context, params *presenter.ProductRequest, id int) error
-	DeleteProduct(ctx context.Context, id int) error
+type groupUsecase interface {
+	GetAllGroup(ctx context.Context, pagination *request.Pagination) (groups []*presenter.GroupResponse, meta response.Meta, err error)
+	GetGroupByID(ctx context.Context, id int) (group *presenter.GroupResponse, err error)
+	CreateGroup(ctx context.Context, params *presenter.GroupRequest) error
+	UpdateGroup(ctx context.Context, params *presenter.GroupRequest, id int) error
+	DeleteGroup(ctx context.Context, id int) error
 }
 
-type ProductHandler struct {
-	productUsecase productUsecase
+type GroupHandler struct {
+	groupUsecase groupUsecase
 }
 
-func NewProductHandler(productUsecase productUsecase) *ProductHandler {
-	return &ProductHandler{
-		productUsecase: productUsecase,
+func NewGroupHandler(groupUsecase groupUsecase) *GroupHandler {
+	return &GroupHandler{
+		groupUsecase: groupUsecase,
 	}
 }
 
-// GetAllProduct godoc
-// @Tags Product
-// @Summary Get All Product
-// @Description Get All Product
+// GetAllGroup godoc
+// @Tags Group
+// @Summary Get All Group
+// @Description Get All Group
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number"
@@ -42,16 +43,19 @@ func NewProductHandler(productUsecase productUsecase) *ProductHandler {
 // @Param keyword query string false "Keyword for search"
 // @Param order_by query string false "Order by field"
 // @Param order_type query string false "Order type (asc/desc)"
-// @Success 200 {object} helper.Response{data=[]presenter.ProductResponse,meta=response.Meta}
+// @Param name query string false "Filter by name"
+// @Param nick_name query string false "Filter by nick_name"
+// @Param status query string false "Filter by status"
+// @Param address query string false "Filter by address"
+// @Success 200 {object} helper.Response{data=[]presenter.GroupResponse,meta=response.Meta}
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Security BearerAuth
-// @Router /products [get]
-func (h *ProductHandler) GetAllProduct(w http.ResponseWriter, r *http.Request) {
+// @Router /groups [get]
+func (h *GroupHandler) GetAllGroup(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
 
-	params := &request.Pagination{
+	pagination := &request.Pagination{
 		Keyword:   r.URL.Query().Get("keyword"),
 		OrderBy:   r.URL.Query().Get("order_by"),
 		OrderType: r.URL.Query().Get("order_type"),
@@ -59,7 +63,7 @@ func (h *ProductHandler) GetAllProduct(w http.ResponseWriter, r *http.Request) {
 		PageSize:  pageSize,
 	}
 
-	data, meta, err := h.productUsecase.GetAllProduct(r.Context(), params)
+	data, meta, err := h.groupUsecase.GetAllGroup(r.Context(), pagination)
 	if err != nil {
 		helper.WriteResponse(w, err, nil)
 		return
@@ -75,25 +79,25 @@ func (h *ProductHandler) GetAllProduct(w http.ResponseWriter, r *http.Request) {
 	helper.WriteResponse(w, nil, &response)
 }
 
-// GetProductByID godoc
-// @Tags Product
-// @Summary Get Product by ID
-// @Description Get Product by ID
+// GetGroupByID godoc
+// @Tags Group
+// @Summary Get Group by ID
+// @Description Get Group by ID
 // @Accept json
 // @Produce json
-// @Param id path int true "Product ID"
-// @Success 200 {object} helper.Response{data=presenter.ProductResponse}
+// @Param id path int true "Group ID"
+// @Success 200 {object} helper.Response{data=presenter.GroupResponse}
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Router /product/{id} [get]
-func (h *ProductHandler) GetProductByID(w http.ResponseWriter, r *http.Request) {
+// @Router /group/{id} [get]
+func (h *GroupHandler) GetGroupByID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	idInt, _ := strconv.Atoi(id)
 	if idInt == 0 {
 		helper.WriteResponse(w, helper.NewErrBadRequest("id is required"), nil)
 		return
 	}
-	data, err := h.productUsecase.GetProductByID(r.Context(), idInt)
+	data, err := h.groupUsecase.GetGroupByID(r.Context(), idInt)
 	if err != nil {
 		helper.WriteResponse(w, err, nil)
 		return
@@ -108,20 +112,19 @@ func (h *ProductHandler) GetProductByID(w http.ResponseWriter, r *http.Request) 
 	helper.WriteResponse(w, nil, &response)
 }
 
-// CreateProduct godoc
-// @Tags Product
-// @Summary Create a new product
-// @Description Create a new product
+// CreateGroup godoc
+// @Tags Group
+// @Summary Create a new group
+// @Description Create a new group
 // @Accept json
 // @Produce json
-// @Param request body presenter.ProductRequest true "Product data"
-// @Success 201 {object} helper.Response{data=presenter.ProductResponse}
+// @Param request body presenter.GroupRequest true "Group data"
+// @Success 201 {object} helper.Response{data=presenter.GroupResponse}
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Security BearerAuth
-// @Router /product-create [post]
-func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	var params presenter.ProductRequest
+// @Router /group-create [post]
+func (h *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	var params presenter.GroupRequest
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -129,7 +132,13 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.productUsecase.CreateProduct(r.Context(), &params)
+	//Validasi sebelum lanjut ke usecase
+	if err := validation.ValidateStruct(params); err != nil {
+		helper.WriteResponse(w, err, nil)
+		return
+	}
+
+	err = h.groupUsecase.CreateGroup(r.Context(), &params)
 	if err != nil {
 		helper.WriteResponse(w, err, nil)
 		return
@@ -143,19 +152,19 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	helper.WriteResponse(w, nil, &response)
 }
 
-// UpdateProduct godoc
-// @Tags Product
-// @Summary Update a product
-// @Description Update a product
+// UpdateGroup godoc
+// @Tags Group
+// @Summary Update a group
+// @Description Update a group
 // @Accept json
 // @Produce json
-// @Param id path int true "Product ID"
-// @Param request body presenter.ProductRequest true "Product data"
-// @Success 200 {object} helper.Response{data=presenter.ProductResponse}
+// @Param id path int true "Group ID"
+// @Param request body presenter.GroupRequest true "Group data"
+// @Success 200 {object} helper.Response{data=presenter.GroupResponse}
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Router /products/{id} [put]
-func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+// @Router /group-update/{id} [put]
+func (h *GroupHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	idInt, _ := strconv.Atoi(id)
 
@@ -164,7 +173,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var params presenter.ProductRequest
+	var params presenter.GroupRequest
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -172,7 +181,13 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.productUsecase.UpdateProduct(r.Context(), &params, idInt)
+	//Validasi sebelum lanjut ke usecase
+	if err := validation.ValidateStruct(params); err != nil {
+		helper.WriteResponse(w, err, nil)
+		return
+	}
+
+	err = h.groupUsecase.UpdateGroup(r.Context(), &params, idInt)
 	if err != nil {
 		helper.WriteResponse(w, err, nil)
 		return
@@ -186,18 +201,18 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	helper.WriteResponse(w, nil, &response)
 }
 
-// DeleteProduct godoc
-// @Tags Product
-// @Summary Delete a product
-// @Description Delete a product
+// DeleteGroup godoc
+// @Tags Group
+// @Summary Delete a group
+// @Description Delete a group
 // @Accept json
 // @Produce json
-// @Param id path int true "Product ID"
-// @Success 200 {object} helper.Response{data=presenter.ProductResponse}
+// @Param id path int true "Group ID"
+// @Success 200 {object} helper.Response{data=presenter.GroupResponse}
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Router /products/{id} [delete]
-func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+// @Router /group-delete/{id} [delete]
+func (h *GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	idInt, _ := strconv.Atoi(id)
 
@@ -206,7 +221,7 @@ func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.productUsecase.DeleteProduct(r.Context(), idInt)
+	err := h.groupUsecase.DeleteGroup(r.Context(), idInt)
 	if err != nil {
 		helper.WriteResponse(w, err, nil)
 		return

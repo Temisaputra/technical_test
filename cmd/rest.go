@@ -32,12 +32,31 @@ var restCmd = &cobra.Command{
 		}()
 
 		// Inject dependency
-
-		// Product
-		productRepo := repository.NewProductRepo(deps.DB)
 		transactionRepo := repository.NewTransactionRepo(deps.DB)
-		productUC := usecase.NewProductUsecase(productRepo, transactionRepo)
-		productHandler := handler.NewProductHandler(productUC)
+
+		// Address
+		addressRepo := repository.NewAddressRepo(deps.DB)
+
+		// Contact
+		contactRepo := repository.NewContactRepo(deps.DB)
+
+		// Group
+		groupRepo := repository.NewGroupRepo(deps.DB)
+		groupUC := usecase.NewGroupUsecase(groupRepo, transactionRepo)
+		groupHandler := handler.NewGroupHandler(groupUC)
+
+		// Material
+		materialRepo := repository.NewMaterialRepo(deps.DB)
+
+		// Supplier
+		supplierRepo := repository.NewSupplierRepo(deps.DB)
+		supplierUC := usecase.NewSupplierUsecase(supplierRepo, addressRepo, contactRepo, groupRepo, materialRepo, transactionRepo)
+		supplierHandler := handler.NewSupplierHandler(supplierUC)
+
+		// Approval
+		approvalRepo := repository.NewApprovalRepo(deps.DB)
+		approvalUC := usecase.NewApprovalUsecase(approvalRepo, transactionRepo)
+		approvalHandler := handler.NewApprovalHandler(approvalUC)
 
 		// User
 		userRepo := repository.NewUserRepo(deps.DB)
@@ -51,10 +70,12 @@ var restCmd = &cobra.Command{
 		authHandler := handler.NewAuthHandler(authUC)
 
 		handlers := &router.Handlers{
-			ProductHandler: productHandler,
-			AuthHandler:    authHandler,
-			Logger:         deps.Logger,
-			JwtService:     jwtService,
+			SupplierHandler: supplierHandler,
+			GroupHandler:    groupHandler,
+			AuthHandler:     authHandler,
+			ApprovalHandler: approvalHandler,
+			Logger:          deps.Logger,
+			JwtService:      jwtService,
 		}
 
 		r := router.NewRouter(handlers)

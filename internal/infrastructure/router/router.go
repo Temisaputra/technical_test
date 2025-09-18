@@ -17,11 +17,13 @@ import (
 )
 
 type Handlers struct {
-	ProductHandler *handler.ProductHandler
-	UserHandler    *handler.UserHandler
-	AuthHandler    *handler.AuthHandler
-	Logger         *zap.Logger
-	JwtService     auth.JwtService
+	SupplierHandler *handler.SupplierHandler
+	GroupHandler    *handler.GroupHandler
+	UserHandler     *handler.UserHandler
+	AuthHandler     *handler.AuthHandler
+	ApprovalHandler *handler.ApprovalHandler
+	Logger          *zap.Logger
+	JwtService      auth.JwtService
 }
 
 // NewRouter bikin router dan register semua endpoint
@@ -51,15 +53,25 @@ func NewRouter(handlers *Handlers) http.Handler {
 	api.HandleFunc("/register", handlers.AuthHandler.Register).Methods("POST")
 	api.HandleFunc("/login", handlers.AuthHandler.Login).Methods("POST")
 
+	// Supplier endpoints
+	api.HandleFunc("/suppliers", handlers.SupplierHandler.GetAllSupplier).Methods("GET")
+	api.HandleFunc("/supplier/{id}", handlers.SupplierHandler.GetSupplierByID).Methods("GET")
+	api.HandleFunc("/supplier-create", handlers.SupplierHandler.CreateSupplier).Methods("POST")
+	api.HandleFunc("/supplier-update/{id}", handlers.SupplierHandler.UpdateSupplier).Methods("PUT")
+	api.HandleFunc("/supplier-delete/{id}", handlers.SupplierHandler.DeleteSupplier).Methods("DELETE")
+	api.HandleFunc("/supplier-block-unblock/{id}", handlers.SupplierHandler.BlockUnblockSupplier).Methods("PATCH")
+	api.HandleFunc("/supplier-export", handlers.SupplierHandler.ExportSupplier).Methods("GET")
+
+	// Group endpoints
+	api.HandleFunc("/groups", handlers.GroupHandler.GetAllGroup).Methods("GET")
+	api.HandleFunc("/group/{id}", handlers.GroupHandler.GetGroupByID).Methods("GET")
+	api.HandleFunc("/group-create", handlers.GroupHandler.CreateGroup).Methods("POST")
+	api.HandleFunc("/group-update/{id}", handlers.GroupHandler.UpdateGroup).Methods("PUT")
+	api.HandleFunc("/group-delete/{id}", handlers.GroupHandler.DeleteGroup).Methods("DELETE")
+
 	// ---------------- Protected ----------------
 	protected := api.PathPrefix("").Subrouter()
 	protected.Use(authMW.Authorization)
-	// Product endpoints
-	protected.HandleFunc("/products", handlers.ProductHandler.GetAllProduct).Methods("GET")
-	protected.HandleFunc("/product/{id}", handlers.ProductHandler.GetProductByID).Methods("GET")
-	protected.HandleFunc("/product-create", handlers.ProductHandler.CreateProduct).Methods("POST")
-	protected.HandleFunc("/product-update/{id}", handlers.ProductHandler.UpdateProduct).Methods("PUT")
-	protected.HandleFunc("/product-delete/{id}", handlers.ProductHandler.DeleteProduct).Methods("DELETE")
 
 	// User endpoints
 	protected.HandleFunc("/users", handlers.UserHandler.GetAllUser).Methods("GET")

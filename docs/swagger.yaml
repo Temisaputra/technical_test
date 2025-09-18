@@ -9,6 +9,89 @@ definitions:
       status:
         type: integer
     type: object
+  presenter.AddressRequest:
+    properties:
+      address:
+        type: string
+      main:
+        type: boolean
+      name:
+        type: string
+    required:
+    - address
+    - name
+    type: object
+  presenter.AddressResponse:
+    properties:
+      address:
+        type: string
+      id:
+        type: integer
+      main:
+        type: boolean
+      name:
+        type: string
+      supplier_id:
+        type: integer
+    type: object
+  presenter.ContactRequest:
+    properties:
+      email:
+        type: string
+      job_position:
+        type: string
+      main:
+        type: boolean
+      mobile:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    type: object
+  presenter.ContactResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      job_position:
+        type: string
+      main:
+        type: boolean
+      mobile:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      supplier_id:
+        type: integer
+    type: object
+  presenter.GroupRequest:
+    properties:
+      active:
+        type: boolean
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  presenter.GroupResponse:
+    properties:
+      active:
+        type: boolean
+      group_name:
+        type: string
+      id:
+        type: integer
+      value:
+        type: string
+    type: object
   presenter.LoginRequest:
     properties:
       email:
@@ -27,29 +110,30 @@ definitions:
       user:
         $ref: '#/definitions/presenter.UserResponse'
     type: object
-  presenter.ProductRequest:
+  presenter.MaterialRequest:
     properties:
-      product_name:
+      active:
+        type: boolean
+      material_group:
         type: string
-      product_stock:
+      material_id:
         type: integer
-      purchase_price:
-        type: number
-      selling_price:
-        type: number
+    required:
+    - material_group
+    - material_id
     type: object
-  presenter.ProductResponse:
+  presenter.MaterialResponse:
     properties:
-      product_name:
+      active:
+        type: boolean
+      id:
+        type: integer
+      material_group:
         type: string
-      product_stock:
+      material_id:
         type: integer
-      products_id:
+      supplier_id:
         type: integer
-      purchase_price:
-        type: number
-      selling_price:
-        type: number
     type: object
   presenter.RegisterRequest:
     properties:
@@ -65,7 +149,73 @@ definitions:
     required:
     - email
     - password
+    - role
     - username
+    type: object
+  presenter.SupplierBlockUnblockRequest:
+    properties:
+      file_name:
+        type: string
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
+  presenter.SupplierCreateRequest:
+    properties:
+      address:
+        items:
+          $ref: '#/definitions/presenter.AddressRequest'
+        type: array
+      contact:
+        items:
+          $ref: '#/definitions/presenter.ContactRequest'
+        type: array
+      groups:
+        items:
+          type: integer
+        type: array
+      materials:
+        items:
+          $ref: '#/definitions/presenter.MaterialRequest'
+        type: array
+      name:
+        type: string
+      nick_name:
+        type: string
+      status:
+        type: string
+    required:
+    - address
+    - contact
+    - name
+    - nick_name
+    - status
+    type: object
+  presenter.SupplierResponse:
+    properties:
+      address:
+        $ref: '#/definitions/presenter.AddressResponse'
+      contact:
+        $ref: '#/definitions/presenter.ContactResponse'
+      created_at:
+        type: string
+      group:
+        $ref: '#/definitions/presenter.GroupResponse'
+      id:
+        type: integer
+      material:
+        items:
+          $ref: '#/definitions/presenter.MaterialResponse'
+        type: array
+      name:
+        type: string
+      nick_name:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
     type: object
   presenter.UserResponse:
     properties:
@@ -102,6 +252,218 @@ info:
   title: My REST API
   version: "1.0"
 paths:
+  /group-create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new group
+      parameters:
+      - description: Group data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.GroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.GroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Create a new group
+      tags:
+      - Group
+  /group-delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.GroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Delete a group
+      tags:
+      - Group
+  /group-update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Group data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.GroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.GroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Update a group
+      tags:
+      - Group
+  /group/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Group by ID
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.GroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get Group by ID
+      tags:
+      - Group
+  /groups:
+    get:
+      consumes:
+      - application/json
+      description: Get All Group
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Keyword for search
+        in: query
+        name: keyword
+        type: string
+      - description: Order by field
+        in: query
+        name: order_by
+        type: string
+      - description: Order type (asc/desc)
+        in: query
+        name: order_type
+        type: string
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - description: Filter by nick_name
+        in: query
+        name: nick_name
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by address
+        in: query
+        name: address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/presenter.GroupResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/response.Meta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get All Group
+      tags:
+      - Group
   /login:
     post:
       consumes:
@@ -133,205 +495,6 @@ paths:
       summary: Login a user
       tags:
       - auth
-  /product-create:
-    post:
-      consumes:
-      - application/json
-      description: Create a new product
-      parameters:
-      - description: Product data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/presenter.ProductRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/presenter.ProductResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/helper.Response'
-      security:
-      - BearerAuth: []
-      summary: Create a new product
-      tags:
-      - Product
-  /product/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get Product by ID
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/presenter.ProductResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/helper.Response'
-      summary: Get Product by ID
-      tags:
-      - Product
-  /products:
-    get:
-      consumes:
-      - application/json
-      description: Get All Product
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Page size
-        in: query
-        name: page_size
-        type: integer
-      - description: Keyword for search
-        in: query
-        name: keyword
-        type: string
-      - description: Order by field
-        in: query
-        name: order_by
-        type: string
-      - description: Order type (asc/desc)
-        in: query
-        name: order_type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/presenter.ProductResponse'
-                  type: array
-                meta:
-                  $ref: '#/definitions/response.Meta'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/helper.Response'
-      security:
-      - BearerAuth: []
-      summary: Get All Product
-      tags:
-      - Product
-  /products/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a product
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/presenter.ProductResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/helper.Response'
-      summary: Delete a product
-      tags:
-      - Product
-    put:
-      consumes:
-      - application/json
-      description: Update a product
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Product data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/presenter.ProductRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/helper.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/presenter.ProductResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/helper.Response'
-      summary: Update a product
-      tags:
-      - Product
   /register:
     post:
       consumes:
@@ -358,6 +521,302 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /supplier-block-unblock/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Block Unblock a supplier
+      parameters:
+      - description: Supplier ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Supplier data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.SupplierBlockUnblockRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Block Unblock a supplier
+      tags:
+      - Supplier
+  /supplier-create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new supplier
+      parameters:
+      - description: Supplier data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.SupplierCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.SupplierResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Create a new supplier
+      tags:
+      - Supplier
+  /supplier-delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a supplier
+      parameters:
+      - description: Supplier ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.SupplierResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Delete a supplier
+      tags:
+      - Supplier
+  /supplier-export:
+    get:
+      consumes:
+      - application/json
+      description: Export Supplier data to Excel
+      parameters:
+      - description: Keyword for search
+        in: query
+        name: keyword
+        type: string
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - description: Filter by nick_name
+        in: query
+        name: nick_name
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by address
+        in: query
+        name: address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Export Supplier data to Excel
+      tags:
+      - Supplier
+  /supplier-update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a supplier
+      parameters:
+      - description: Supplier ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Supplier data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.SupplierCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.SupplierResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Update a supplier
+      tags:
+      - Supplier
+  /supplier/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Supplier by ID
+      parameters:
+      - description: Supplier ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.SupplierResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get Supplier by ID
+      tags:
+      - Supplier
+  /suppliers:
+    get:
+      consumes:
+      - application/json
+      description: Get All Supplier
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Keyword for search
+        in: query
+        name: keyword
+        type: string
+      - description: Order by field
+        in: query
+        name: order_by
+        type: string
+      - description: Order type (asc/desc)
+        in: query
+        name: order_type
+        type: string
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - description: Filter by nick_name
+        in: query
+        name: nick_name
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by address
+        in: query
+        name: address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/presenter.SupplierResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/response.Meta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get All Supplier
+      tags:
+      - Supplier
 securityDefinitions:
   BearerAuth:
     in: header
