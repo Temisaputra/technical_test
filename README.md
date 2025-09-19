@@ -1,6 +1,6 @@
 # War-Onk Service
 
-A clean-architecture Go project for managing products and other modules with GORM, PostgreSQL, and Swagger API documentation.
+A clean-architecture Go project for managing supplier and other modules with GORM, PostgreSQL, and Swagger API documentation.
 
 ---
 
@@ -90,11 +90,11 @@ http://localhost:8085/swagger/index.html
 
 Use this to explore all endpoints including:
 
-- Product Create
-- Product Get All
-- Product Get By ID
-- Product Update
-- Product Delete
+- Supplier Create
+- Supplier Get All
+- Supplier Get By ID
+- Supplier Update
+- Supplier Delete
 
 ---
 
@@ -103,14 +103,14 @@ Use this to explore all endpoints including:
 For unit testing, generate mocks using:
 
 ```bash
-mockgen -source=internal/repository/product_repository.go -destination=./shared/mock/repository/repository_mock.go -package repository
+mockgen -source=internal/repository/supplier_repository.go -destination=./shared/mock/repository/repository_mock.go -package repository
 ```
 
 You can also add a Makefile target for convenience:
 
 ```makefile
 generate-mocks:
-	mockgen -source=internal/repository/product_repository.go -destination=./shared/mock/repository/repository_mock.go -package repository
+	mockgen -source=internal/repository/supplier_repository.go -destination=./shared/mock/repository/repository_mock.go -package repository
 ```
 
 Run with:
