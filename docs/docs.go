@@ -23,6 +23,358 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/approval/{id}": {
+            "get": {
+                "description": "Get Active Workflow By Supplier ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Approval"
+                ],
+                "summary": "Get Active Workflow By Supplier ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Supplier ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/presenter.ApprovalResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/approvals": {
+            "get": {
+                "description": "Get All Approval Workflows",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Approval"
+                ],
+                "summary": "Get All Approval Workflows",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by stage",
+                        "name": "stage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by supplier ID",
+                        "name": "supplier_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/presenter.ApprovalResponse"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/response.Meta"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/approvals/logs/{id}": {
+            "post": {
+                "description": "Submit approval action (approve, reject, comment)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Approval"
+                ],
+                "summary": "Create Approval Log",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Approval log data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ApprovalLogCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/approvals/{id}/logs": {
+            "get": {
+                "description": "Get all logs of a workflow",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Approval"
+                ],
+                "summary": "Get Logs By Workflow ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/helper.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/presenter.ApprovalLogResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/approve-workflow/{id}": {
+            "put": {
+                "description": "Approve an existing workflow",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Approval"
+                ],
+                "summary": "Approve Workflow",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workflow ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Approve workflow data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ApprovalUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/create-workflow": {
+            "post": {
+                "description": "Create a new workflow for supplier",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Approval"
+                ],
+                "summary": "Create Workflow",
+                "parameters": [
+                    {
+                        "description": "Workflow data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ApprovalCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/group-create": {
             "post": {
                 "description": "Create a new group",
@@ -981,6 +1333,165 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "supplier_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ApprovalCreateRequest": {
+            "type": "object",
+            "required": [
+                "stage",
+                "steps",
+                "supplier_id"
+            ],
+            "properties": {
+                "sla_hours": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "description": "Draft, In Review, In Assessment, Active",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "default: In Progress",
+                    "type": "string"
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.ApprovalStepRequest"
+                    }
+                },
+                "supplier_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ApprovalLogCreateRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "role",
+                "user"
+            ],
+            "properties": {
+                "action": {
+                    "description": "Approve, Return, Comment",
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ApprovalLogResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ApprovalResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "sla_hours": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "supplier_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.ApprovalStepRequest": {
+            "type": "object",
+            "required": [
+                "role",
+                "step_order"
+            ],
+            "properties": {
+                "assigned_to": {
+                    "description": "optional: kalau assign user tertentu",
+                    "type": "integer"
+                },
+                "role": {
+                    "description": "e.g. Sales, Marketing, Data Management",
+                    "type": "string"
+                },
+                "sla_hours": {
+                    "type": "integer"
+                },
+                "step_order": {
+                    "type": "integer"
+                }
+            }
+        },
+        "presenter.ApprovalUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "reviewer",
+                "supplier_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "reviewer": {
+                    "$ref": "#/definitions/presenter.ApprovalLogCreateRequest"
+                },
+                "sla_hours": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "supplier_id": {

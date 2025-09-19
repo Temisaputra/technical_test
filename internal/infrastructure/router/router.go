@@ -69,6 +69,14 @@ func NewRouter(handlers *Handlers) http.Handler {
 	api.HandleFunc("/group-update/{id}", handlers.GroupHandler.UpdateGroup).Methods("PUT")
 	api.HandleFunc("/group-delete/{id}", handlers.GroupHandler.DeleteGroup).Methods("DELETE")
 
+	// Approval endpoints
+	api.HandleFunc("/approvals", handlers.ApprovalHandler.GetAllApprovalWorkflows).Methods("GET")
+	api.HandleFunc("/approval/{id}", handlers.ApprovalHandler.GetActiveWorkflowByID).Methods("GET")
+	api.HandleFunc("/create-workflow", handlers.ApprovalHandler.CreateWorkflow).Methods("POST")
+	api.HandleFunc("/approve-workflow/{id}", handlers.ApprovalHandler.ApproveWorkflow).Methods("PUT")
+	api.HandleFunc("/approval/logs/{id}", handlers.ApprovalHandler.GetLogsByWorkflowID).Methods("GET")
+	// api.HandleFunc("/approval-delete/{id}", handlers.ApprovalHandler.DeleeWorkflow).Methods("DELETE")
+
 	// ---------------- Protected ----------------
 	protected := api.PathPrefix("").Subrouter()
 	protected.Use(authMW.Authorization)

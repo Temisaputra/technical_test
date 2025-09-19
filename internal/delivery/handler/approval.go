@@ -15,9 +15,9 @@ import (
 
 type approvalUsecase interface {
 	GetAllApprovalWorkflows(ctx context.Context, pagination *request.Pagination, params *presenter.ApprovalRequest) ([]*presenter.ApprovalResponse, response.Meta, error)
-	GetActiveWorkflowBySupplierID(ctx context.Context, supplierID uint) (*presenter.ApprovalResponse, error)
+	GetActiveWorkflowByID(ctx context.Context, Id uint) (*presenter.ApprovalResponse, error)
 	CreateWorkflow(ctx context.Context, workflow *presenter.ApprovalCreateRequest) error
-	UpdateWorkflow(ctx context.Context, workflow *presenter.ApprovalUpdateRequest) error
+	ApproveWorkflow(ctx context.Context, workflow *presenter.ApprovalUpdateRequest) error
 	GetLogsByWorkflowID(ctx context.Context, workflowID uint) ([]presenter.ApprovalLogResponse, error)
 	CreateLog(ctx context.Context, log *presenter.ApprovalLogCreateRequest) error
 }
@@ -89,15 +89,15 @@ func (h *ApprovalHandler) GetAllApprovalWorkflows(w http.ResponseWriter, r *http
 // @Success 200 {object} helper.Response{data=presenter.ApprovalResponse}
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Router /approvals/{id}/active [get]
-func (h *ApprovalHandler) GetActiveWorkflowBySupplierID(w http.ResponseWriter, r *http.Request) {
+// @Router /approval/{id} [get]
+func (h *ApprovalHandler) GetActiveWorkflowByID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	idInt, _ := strconv.Atoi(id)
 	if idInt == 0 {
 		helper.WriteResponse(w, helper.NewErrBadRequest("id is required"), nil)
 		return
 	}
-	data, err := h.approvalUsecase.GetActiveWorkflowBySupplierID(r.Context(), uint(idInt))
+	data, err := h.approvalUsecase.GetActiveWorkflowByID(r.Context(), uint(idInt))
 	if err != nil {
 		helper.WriteResponse(w, err, nil)
 		return
@@ -119,7 +119,7 @@ func (h *ApprovalHandler) GetActiveWorkflowBySupplierID(w http.ResponseWriter, r
 // @Success 201 {object} helper.Response
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Router /approvals [post]
+// @Router /create-workflow [post]
 func (h *ApprovalHandler) CreateWorkflow(w http.ResponseWriter, r *http.Request) {
 	var params presenter.ApprovalCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
@@ -148,7 +148,7 @@ func (h *ApprovalHandler) CreateWorkflow(w http.ResponseWriter, r *http.Request)
 // @Success 201 {object} helper.Response
 // @Failure 400 {object} helper.Response
 // @Failure 500 {object} helper.Response
-// @Router /approvals/{id}/logs [post]
+// @Router /approvals/logs/{id} [post]
 func (h *ApprovalHandler) CreateLog(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	idInt, _ := strconv.Atoi(id)
@@ -203,5 +203,41 @@ func (h *ApprovalHandler) GetLogsByWorkflowID(w http.ResponseWriter, r *http.Req
 		StatusCode: http.StatusOK,
 		Message:    "success",
 		Data:       data,
+	})
+}
+
+// @Tags Approval
+// @Summary Approve Workflow
+// @Description Approve an existing workflow
+// @Accept json
+// @Produce json
+// @Param id path int true "Workflow ID"
+// @Param request body presenter.ApprovalUpdateRequest true "Approve workflow data"
+// @Success 200 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Failure 500 {object} helper.Response
+// @Router /approve-workflow/{id} [put]
+func (h *ApprovalHandler) ApproveWorkflow(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	idInt, _ := strconv.Atoi(id)
+	if idInt == 0 {
+		helper.WriteResponse(w, helper.NewErrBadRequest("workflow id is required"), nil)
+		return
+	}
+	var params presenter.ApprovalUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	params.ID = uint(idInt)
+	if err := h.approvalUsecase.ApproveWorkflow(r.Context(), &params); err != nil {
+		helper.WriteResponse(w, err, nil)
+		return
+	}
+
+	helper.WriteResponse(w, nil, &helper.Response{
+		StatusCode: http.StatusOK,
+		Message:    "success",
 	})
 }

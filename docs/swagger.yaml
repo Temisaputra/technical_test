@@ -34,6 +34,114 @@ definitions:
       supplier_id:
         type: integer
     type: object
+  presenter.ApprovalCreateRequest:
+    properties:
+      sla_hours:
+        type: integer
+      stage:
+        description: Draft, In Review, In Assessment, Active
+        type: string
+      status:
+        description: 'default: In Progress'
+        type: string
+      steps:
+        items:
+          $ref: '#/definitions/presenter.ApprovalStepRequest'
+        type: array
+      supplier_id:
+        type: integer
+    required:
+    - stage
+    - steps
+    - supplier_id
+    type: object
+  presenter.ApprovalLogCreateRequest:
+    properties:
+      action:
+        description: Approve, Return, Comment
+        type: string
+      notes:
+        type: string
+      role:
+        type: string
+      user:
+        type: string
+      workflow_id:
+        type: integer
+    required:
+    - action
+    - role
+    - user
+    type: object
+  presenter.ApprovalLogResponse:
+    properties:
+      action:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      notes:
+        type: string
+      role:
+        type: string
+      user:
+        type: string
+      workflow_id:
+        type: integer
+    type: object
+  presenter.ApprovalResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      sla_hours:
+        type: integer
+      stage:
+        type: string
+      status:
+        type: string
+      supplier_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  presenter.ApprovalStepRequest:
+    properties:
+      assigned_to:
+        description: 'optional: kalau assign user tertentu'
+        type: integer
+      role:
+        description: e.g. Sales, Marketing, Data Management
+        type: string
+      sla_hours:
+        type: integer
+      step_order:
+        type: integer
+    required:
+    - role
+    - step_order
+    type: object
+  presenter.ApprovalUpdateRequest:
+    properties:
+      id:
+        type: integer
+      reviewer:
+        $ref: '#/definitions/presenter.ApprovalLogCreateRequest'
+      sla_hours:
+        type: integer
+      stage:
+        type: string
+      status:
+        type: string
+      supplier_id:
+        type: integer
+    required:
+    - id
+    - reviewer
+    - supplier_id
+    type: object
   presenter.ContactRequest:
     properties:
       email:
@@ -252,6 +360,229 @@ info:
   title: My REST API
   version: "1.0"
 paths:
+  /approval/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Active Workflow By Supplier ID
+      parameters:
+      - description: Supplier ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/presenter.ApprovalResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get Active Workflow By Supplier ID
+      tags:
+      - Approval
+  /approvals:
+    get:
+      consumes:
+      - application/json
+      description: Get All Approval Workflows
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by stage
+        in: query
+        name: stage
+        type: string
+      - description: Filter by supplier ID
+        in: query
+        name: supplier_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/presenter.ApprovalResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/response.Meta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get All Approval Workflows
+      tags:
+      - Approval
+  /approvals/{id}/logs:
+    get:
+      consumes:
+      - application/json
+      description: Get all logs of a workflow
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/presenter.ApprovalLogResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get Logs By Workflow ID
+      tags:
+      - Approval
+  /approvals/logs/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Submit approval action (approve, reject, comment)
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Approval log data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.ApprovalLogCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Create Approval Log
+      tags:
+      - Approval
+  /approve-workflow/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Approve an existing workflow
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Approve workflow data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.ApprovalUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Approve Workflow
+      tags:
+      - Approval
+  /create-workflow:
+    post:
+      consumes:
+      - application/json
+      description: Create a new workflow for supplier
+      parameters:
+      - description: Workflow data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.ApprovalCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Create Workflow
+      tags:
+      - Approval
   /group-create:
     post:
       consumes:

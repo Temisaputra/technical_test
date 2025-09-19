@@ -98,10 +98,10 @@ func (r *ApprovalRepository) GetAllApprovalWorkflows(
 	return workflows, meta, nil
 }
 
-func (r *ApprovalRepository) GetActiveWorkflowBySupplierID(ctx context.Context, supplierID uint) (*entity.ApprovalWorkflow, error) {
+func (r *ApprovalRepository) GetActiveWorkflowByID(ctx context.Context, Id uint) (*entity.ApprovalWorkflow, error) {
 	var workflow entity.ApprovalWorkflow
 	err := r.Conn(ctx).WithContext(ctx).
-		Where("supplier_id = ? AND status = ?", supplierID, "In Progress").
+		Where("id = ? AND status = ?", Id, "In Progress").
 		Order("created_at DESC").
 		First(&workflow).Error
 	if err != nil {
@@ -110,8 +110,12 @@ func (r *ApprovalRepository) GetActiveWorkflowBySupplierID(ctx context.Context, 
 	return &workflow, nil
 }
 
-func (r *ApprovalRepository) CreateWorkflow(ctx context.Context, workflow *entity.ApprovalWorkflow) error {
-	return r.Conn(ctx).WithContext(ctx).Create(workflow).Error
+func (r *ApprovalRepository) CreateWorkflow(ctx context.Context, workflow *entity.ApprovalWorkflow) (uint, error) {
+	err := r.Conn(ctx).WithContext(ctx).Create(workflow).Error
+	if err != nil {
+		return 0, err
+	}
+	return workflow.ID, nil
 }
 
 func (r *ApprovalRepository) UpdateWorkflow(ctx context.Context, workflow *entity.ApprovalWorkflow) error {
@@ -129,4 +133,29 @@ func (r *ApprovalRepository) GetLogsByWorkflowID(ctx context.Context, workflowID
 
 func (r *ApprovalRepository) CreateLog(ctx context.Context, log *entity.ApprovalLog) error {
 	return r.Conn(ctx).WithContext(ctx).Create(log).Error
+}
+
+func (r *ApprovalRepository) CreateWorkflowSteps(ctx context.Context, steps []entity.ApprovalStep) error {
+	return r.Conn(ctx).WithContext(ctx).Create(&steps).Error
+}
+
+func (r *ApprovalRepository) GetStepsByWorkflowID(ctx context.Context, workflowID uint) ([]entity.ApprovalStep, error) {
+	var steps []entity.ApprovalStep
+	err := r.Conn(ctx).WithContext(ctx).
+		Where("workflow_id = ?", workflowID).
+		Order("step_order ASC").
+		Find(&steps).Error
+	return steps, err
+}
+
+func (r *ApprovalRepository) UpdateWorkflowStep(ctx context.Context, step *entity.ApprovalStep) error {
+	return r.Conn(ctx).WithContext(ctx).Save(step).Error
+}
+
+func (r *ApprovalRepository) ResetStepsByWorkflowID(ctx context.Context, workflowID uint) error {
+	return r.Conn(ctx).WithContext(ctx).Model(&entity.ApprovalStep{}).
+		Where("workflow_id = ?", workflowID).
+		Updates(map[string]interface{}{
+			"is_current": nil,
+		}).Error
 }
